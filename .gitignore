@@ -21,3 +21,6 @@ build/
 # Environment
 .env
 .env.local
+
+# Local leaderboard storage
+backend/data/leaderboard.json
