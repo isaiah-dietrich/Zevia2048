@@ -52,12 +52,14 @@ body::after {
     inset: 0;
     pointer-events: none;
     background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.14' numOctaves='4' seed='17' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)' opacity='0.72'/%3E%3C/svg%3E");
-    background-size: 120px 120px;
-    background-position: 0 0;
-    background-repeat: repeat;
-    mix-blend-mode: normal;
-    opacity: 0.78;
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000' preserveAspectRatio='none'%3E%3Cfilter id='n1'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' seed='17'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncA type='table' tableValues='0 0.02 0.06 0.12 0.2 0.28 0.36 0.44 0.5 0.58 0.66 0.72 0.78 0.84 0.9 0.96 1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n1)' opacity='0.75'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 1000' preserveAspectRatio='none'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.42' numOctaves='2' seed='49'/%3E%3CfeGaussianBlur stdDeviation='0.2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='0.32'/%3E%3C/svg%3E");
+    background-size: 100% 100%, 100% 100%;
+    background-position: center center, center center;
+    background-repeat: no-repeat, no-repeat;
+    background-blend-mode: multiply, soft-light;
+    mix-blend-mode: multiply;
+    opacity: 0.6;
     z-index: 0;
 }
 
@@ -591,6 +593,8 @@ footer p + p {
     }
 
     .game-wrapper {
+        display: flex;
+        flex-direction: column;
         padding: 20px;
     }
 
@@ -601,6 +605,18 @@ footer p + p {
     .stats {
         flex-direction: column;
         gap: 10px;
+        order: 2;
+        margin-top: 12px;
+        margin-bottom: 16px;
+    }
+
+    .game-board {
+        order: 1;
+        margin-bottom: 0;
+    }
+
+    .controls {
+        order: 3;
     }
 
     .tile {
