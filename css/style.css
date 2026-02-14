@@ -6,6 +6,11 @@
 }
 
 :root {
+    --surface: #ffffff;
+    --surface-muted: #f6f7f8;
+    --text-strong: #1f2933;
+    --text-muted: #5c6673;
+    --border-soft: #e4e8ee;
     --anim-slide-ms: 100ms;
     --anim-merge-ms: 145ms;
     --anim-spawn-ms: 220ms;
@@ -15,39 +20,162 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    font-family: ui-rounded, "SF Pro Rounded", "Avenir Next Rounded", "Nunito Sans", "Segoe UI", sans-serif;
+    background:
+        linear-gradient(160deg, rgba(107, 201, 243, 0.96) 2%, rgba(243, 250, 247, 0.88) 36%, rgba(74, 182, 230, 0.92) 88%),
+        linear-gradient(180deg, #f3e2cb 0%, #ddc9ae 56%, #ccb697 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
+    color: var(--text-strong);
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(118% 78% at 12% 28%, rgba(247, 252, 253, 0.9) 0%, rgba(247, 252, 253, 0) 58%),
+        radial-gradient(142% 98% at 89% 66%, rgba(60, 181, 230, 0.72) 0%, rgba(60, 181, 230, 0) 72%);
+    opacity: 0.96;
+    z-index: 0;
+}
+
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.14' numOctaves='4' seed='17' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)' opacity='0.72'/%3E%3C/svg%3E");
+    background-size: 120px 120px;
+    background-position: 0 0;
+    background-repeat: repeat;
+    mix-blend-mode: normal;
+    opacity: 0.78;
+    z-index: 0;
 }
 
 .container {
     width: 100%;
-    max-width: 600px;
+    max-width: 1280px;
     margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+}
+
+header {
+    text-align: center;
 }
 
 header h1 {
-    font-size: 3em;
-    font-weight: bold;
-    margin-bottom: 5px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    line-height: 1;
 }
 
-.subtitle {
-    font-size: 1.1em;
-    opacity: 0.9;
+.brand-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    letter-spacing: -0.005em;
+}
+
+.brand-zevia {
+    font-weight: 730;
+    letter-spacing: -0.014em;
+    color: #394b5d;
+    font-size: 1em;
+    text-transform: none;
+}
+
+.brand-2048 {
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: #748496;
+    font-size: 0.88em;
+    transform: translateY(0.02em);
+    text-transform: uppercase;
 }
 
 /* ==================== Game Wrapper ==================== */
+.page-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 600px) 300px;
+    gap: 22px;
+    align-items: start;
+    justify-content: center;
+    margin: 0 auto;
+}
+
 .game-wrapper {
-    background: white;
-    border-radius: 10px;
+    background: var(--surface);
+    border-radius: 14px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+}
+
+.side-card {
+    background: var(--surface);
+    border-radius: 12px;
+    padding: 18px 16px;
+    border: 1px solid var(--border-soft);
+    box-shadow: 0 3px 12px rgba(15, 23, 42, 0.05);
+    color: var(--text-strong);
+}
+
+.side-card h2 {
+    font-size: 1.1em;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
+}
+
+.how-to-card p {
+    line-height: 1.45;
+    color: var(--text-muted);
+}
+
+.legend-card {
+    max-height: 730px;
+    overflow: auto;
+}
+
+.legend-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.legend-tile {
+    width: 42px;
+    height: 42px;
+    border-radius: 8px;
+    background: #cdc1b4;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    flex: 0 0 42px;
+}
+
+.legend-name {
+    font-size: 0.95em;
+    color: var(--text-strong);
 }
 
 /* ==================== Stats Display ==================== */
@@ -60,16 +188,17 @@ header h1 {
 
 .stat-box {
     flex: 1;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--surface-muted);
+    color: var(--text-strong);
     padding: 15px;
     border-radius: 8px;
     text-align: center;
+    border: 1px solid var(--border-soft);
 }
 
 .stat-label {
     font-size: 0.9em;
-    opacity: 0.9;
+    color: var(--text-muted);
     margin-bottom: 5px;
 }
 
@@ -83,7 +212,7 @@ header h1 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-gap: 10px;
-    background: #bbada0;
+    background: #e3e8ee;
     padding: 10px;
     border-radius: 8px;
     margin-bottom: 25px;
@@ -92,7 +221,7 @@ header h1 {
 }
 
 .tile {
-    background: #cdc1b4;
+    background: #d2d9e2;
     border-radius: 6px;
     display: flex;
     justify-content: center;
@@ -119,7 +248,7 @@ header h1 {
 }
 
 .tile.empty {
-    background: #cdc1b4;
+    background: #d2d9e2;
     background-image: none;
     color: transparent;
 }
@@ -129,78 +258,106 @@ header h1 {
 }
 
 /* ==================== Flavor Tile Images - Zevia Cans ==================== */
-.tile[data-flavor="Cola"] { 
+.tile[data-flavor="Cola"],
+.legend-tile[data-flavor="Cola"] { 
     background-image: url('../assets/images/cola.webp'); 
     background-color: #1F5DA8;
     box-shadow: 0 0 5px rgba(31, 93, 168, 0.4);
 }
-.tile[data-flavor="Dr. Zevia"] { 
+.tile[data-flavor="Dr. Zevia"],
+.legend-tile[data-flavor="Dr. Zevia"] { 
     background-image: url('../assets/images/dr-zevia.webp'); 
     background-color: #C4162A;
     box-shadow: 0 0 8px rgba(196, 22, 42, 0.5);
 }
-.tile[data-flavor="Ginger Ale"] { 
+.tile[data-flavor="Ginger Ale"],
+.legend-tile[data-flavor="Ginger Ale"] { 
     background-image: url('../assets/images/ginger-ale.webp'); 
     background-color: #2E8B3C;
     box-shadow: 0 0 10px rgba(46, 139, 60, 0.6);
 }
-.tile[data-flavor="Black Cherry"] { 
+.tile[data-flavor="Black Cherry"],
+.legend-tile[data-flavor="Black Cherry"] { 
     background-image: url('../assets/images/black-cherry.webp'); 
     background-color: #E43D8C;
     box-shadow: 0 0 12px rgba(228, 61, 140, 0.7);
 }
-.tile[data-flavor="Lemon Lime Twist"] { 
+.tile[data-flavor="Lemon Lime Twist"],
+.legend-tile[data-flavor="Lemon Lime Twist"] { 
     background-image: url('../assets/images/lemon-lime.webp'); 
     background-color: #C8D92F;
     box-shadow: 0 0 14px rgba(200, 217, 47, 0.75);
 }
-.tile[data-flavor="Orange"] { 
+.tile[data-flavor="Orange"],
+.legend-tile[data-flavor="Orange"] { 
     background-image: url('../assets/images/orange.webp'); 
     background-color: #F4A300;
     box-shadow: 0 0 16px rgba(244, 163, 0, 0.8);
 }
-.tile[data-flavor="Grape"] { 
+.tile[data-flavor="Grape"],
+.legend-tile[data-flavor="Grape"] { 
     background-image: url('../assets/images/grape.webp'); 
     background-color: #6B3FA0;
     box-shadow: 0 0 18px rgba(107, 63, 160, 0.8);
 }
-.tile[data-flavor="Cream Soda"] { 
+.tile[data-flavor="Cream Soda"],
+.legend-tile[data-flavor="Cream Soda"] { 
     background-image: url('../assets/images/cream-soda.webp'); 
     background-color: #F2B632;
     box-shadow: 0 0 20px rgba(242, 182, 50, 0.85);
 }
-.tile[data-flavor="Cherry Cola"] { 
+.tile[data-flavor="Cherry Cola"],
+.legend-tile[data-flavor="Cherry Cola"] { 
     background-image: url('../assets/images/cherry-cola.webp'); 
     background-color: #C62F8F;
     box-shadow: 0 0 22px rgba(198, 47, 143, 0.85);
 }
-.tile[data-flavor="Creamy Root Beer"] { 
+.tile[data-flavor="Creamy Root Beer"],
+.legend-tile[data-flavor="Creamy Root Beer"] { 
     background-image: url('../assets/images/creamy-root-beer.webp'); 
     background-color: #A85A2B;
     box-shadow: 0 0 24px rgba(168, 90, 43, 0.9);
 }
-.tile[data-flavor="Ginger Root Beer"] { 
+.tile[data-flavor="Ginger Root Beer"],
+.legend-tile[data-flavor="Ginger Root Beer"] { 
     background-image: url('../assets/images/ginger-root-beer.webp'); 
     background-color: #2FA6D9;
     box-shadow: 0 0 30px rgba(47, 166, 217, 0.95), 0 0 50px rgba(47, 166, 217, 0.6);
     animation: shine 2s infinite;
 }
-.tile[data-flavor="Cran-Raspberry"] { 
+
+.legend-tile[data-flavor="Ginger Root Beer"] {
+    animation: none;
+}
+
+.tile[data-flavor],
+.legend-tile[data-flavor] {
+    box-shadow: none;
+}
+
+.tile[data-flavor="Ginger Root Beer"] {
+    animation: none;
+}
+.tile[data-flavor="Cran-Raspberry"],
+.legend-tile[data-flavor="Cran-Raspberry"] { 
     background-image: url('../assets/images/cran-raspberry.webp'); 
     background-color: #E2376E;
     box-shadow: 0 0 26px rgba(226, 55, 110, 0.9);
 }
-.tile[data-flavor="Vanilla Cola"] { 
+.tile[data-flavor="Vanilla Cola"],
+.legend-tile[data-flavor="Vanilla Cola"] { 
     background-image: url('../assets/images/vanilla-cola.webp'); 
     background-color: #1E3F8C;
     box-shadow: 0 0 28px rgba(30, 63, 140, 0.9);
 }
-.tile[data-flavor="Salted Caramel"] { 
+.tile[data-flavor="Salted Caramel"],
+.legend-tile[data-flavor="Salted Caramel"] { 
     background-image: url('../assets/images/salted-caramel.webp');
     background-color: #C97A2C;
     box-shadow: 0 0 32px rgba(201, 122, 44, 0.95);
 }
-.tile[data-flavor="Orange Creamsicle"] { 
+.tile[data-flavor="Orange Creamsicle"],
+.legend-tile[data-flavor="Orange Creamsicle"] { 
     background-image: url('../assets/images/orange-creamsicle.webp'); 
     background-color: #F29A2E;
     box-shadow: 0 0 35px rgba(242, 154, 46, 0.95);
@@ -297,13 +454,13 @@ header h1 {
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: #111827;
+    color: #f8fafc;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(17, 24, 39, 0.18);
 }
 
 .btn-primary:active {
@@ -311,7 +468,7 @@ header h1 {
 }
 
 .instructions {
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.9em;
     margin-top: 10px;
 }
@@ -405,13 +562,28 @@ header h1 {
 /* ==================== Footer ==================== */
 footer {
     text-align: center;
-    color: white;
+    color: #4b5563;
+    font-style: italic;
     margin-top: 30px;
     font-size: 0.9em;
-    opacity: 0.8;
+    opacity: 1;
+}
+
+footer p + p {
+    margin-top: 12px;
 }
 
 /* ==================== Responsive Design ==================== */
+@media (max-width: 1120px) {
+    .page-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .legend-card {
+        max-height: none;
+    }
+}
+
 @media (max-width: 480px) {
     header h1 {
         font-size: 2em;
@@ -419,6 +591,10 @@ footer {
 
     .game-wrapper {
         padding: 20px;
+    }
+
+    .side-card {
+        padding: 14px 12px;
     }
 
     .stats {

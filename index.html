@@ -9,40 +9,71 @@
 <body>
     <div class="container">
         <header>
-            <h1>Zevia 2048</h1>
-            <p class="subtitle">Combine flavors to reach Ginger Root Beer!</p>
+            <h1 class="brand-title">
+                <span class="brand-zevia">Zevia</span>
+                <span class="brand-2048">2048</span>
+            </h1>
         </header>
 
-        <div class="game-wrapper">
-            <div class="stats">
-                <div class="stat-box">
-                    <div class="stat-label">Score</div>
-                    <div class="stat-value" id="score">0</div>
+        <div class="page-layout">
+            <aside class="side-card how-to-card">
+                <h2>HOW TO PLAY</h2>
+                <p>Use your arrow keys to move the cans. When two matching flavors touch, they merge into the next flavor.</p>
+            </aside>
+
+            <div class="game-wrapper">
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-label">Score</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Moves</div>
+                        <div class="stat-value" id="moves">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">Best Score</div>
+                        <div class="stat-value" id="best-score">0</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Moves</div>
-                    <div class="stat-value" id="moves">0</div>
+
+                <div class="game-board" id="game-board">
+                    <!-- 4x4 tiles will be generated here -->
                 </div>
-                <div class="stat-box">
-                    <div class="stat-label">Best Score</div>
-                    <div class="stat-value" id="best-score">0</div>
+
+                <div class="controls">
+                    <button id="new-game-btn" class="btn btn-primary">New Game</button>
+                    <div class="instructions">
+                        <p><strong>Controls:</strong> Arrow Keys or WASD to move tiles</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="game-board" id="game-board">
-                <!-- 4x4 tiles will be generated here -->
-            </div>
-
-            <div class="controls">
-                <button id="new-game-btn" class="btn btn-primary">New Game</button>
-                <div class="instructions">
-                    <p><strong>Controls:</strong> Arrow Keys or WASD to move tiles</p>
-                </div>
-            </div>
+            <aside class="side-card legend-card">
+                <h2>FLAVOR LEGEND</h2>
+                <ul class="legend-list">
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Cola"></span><span class="legend-name">Cola</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Dr. Zevia"></span><span class="legend-name">Dr. Zevia</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Ginger Ale"></span><span class="legend-name">Ginger Ale</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Black Cherry"></span><span class="legend-name">Black Cherry</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Lemon Lime Twist"></span><span class="legend-name">Lemon Lime Twist</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Orange"></span><span class="legend-name">Orange</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Grape"></span><span class="legend-name">Grape</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Cream Soda"></span><span class="legend-name">Cream Soda</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Cherry Cola"></span><span class="legend-name">Cherry Cola</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Creamy Root Beer"></span><span class="legend-name">Creamy Root Beer</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Ginger Root Beer"></span><span class="legend-name">Ginger Root Beer</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Cran-Raspberry"></span><span class="legend-name">Cran-Raspberry</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Vanilla Cola"></span><span class="legend-name">Vanilla Cola</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Salted Caramel"></span><span class="legend-name">Salted Caramel</span></li>
+                    <li class="legend-item"><span class="legend-tile" data-flavor="Orange Creamsicle"></span><span class="legend-name">Orange Creamsicle</span></li>
+                </ul>
+            </aside>
         </div>
 
         <footer>
-            <p>Combine tiles with the same flavor to progress through the Zevia lineup</p>
+            <p>This is a fan-made project inspired by Zevia products. Zevia is a registered trademark of Zevia LLC, and this game is not affiliated with, sponsored by, or endorsed by Zevia LLC.</p>
+            <p>Inspired by the original 2048 game created by Gabriele Cirulli.</p>
         </footer>
     </div>
 
