@@ -6,10 +6,10 @@
 }
 
 :root {
-    --anim-slide-ms: 145ms;
+    --anim-slide-ms: 140ms;
     --anim-merge-ms: 145ms;
-    --anim-spawn-ms: 150ms;
-    --anim-slide-ease: cubic-bezier(0.18, 0.92, 0.28, 1);
+    --anim-spawn-ms: 220ms;
+    --anim-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
     --anim-pop-ease: cubic-bezier(0.24, 1.08, 0.34, 1);
 }
 
@@ -234,17 +234,12 @@ header h1 {
 
 @keyframes spawn {
     0% {
-        transform: scale(0.56) translateZ(0);
-        opacity: 0;
+        transform: scale(0.98) translateZ(0);
+        opacity: 0.92;
     }
-    65% {
+    60% {
+        transform: scale(1.02) translateZ(0);
         opacity: 1;
-    }
-    78% {
-        transform: scale(1.09) translateZ(0);
-    }
-    92% {
-        transform: scale(0.985) translateZ(0);
     }
     100% {
         transform: scale(1) translateZ(0);

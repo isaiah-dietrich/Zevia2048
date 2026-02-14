@@ -130,10 +130,14 @@ class UI {
 
         if (direction) {
             if (this.isAnimating) {
-                // Favor immediate control feel over finishing the previous visual tail.
-                this.interruptAnimations();
-                this.pendingDirections = [];
-                this.executeMove(direction);
+                // Queue a small number of inputs so motion stays continuous.
+                const lastQueued = this.pendingDirections[this.pendingDirections.length - 1];
+                if (lastQueued !== direction) {
+                    this.pendingDirections.push(direction);
+                    if (this.pendingDirections.length > 2) {
+                        this.pendingDirections = this.pendingDirections.slice(-2);
+                    }
+                }
                 return;
             }
             this.executeMove(direction);
@@ -238,8 +242,8 @@ class UI {
 
     // Render the game board with proper animation sequencing
     render() {
-        const SLIDE_MS = 145;
-        const CONTACT_HOLD_MS = 16;
+        const SLIDE_MS = 140;
+        const CONTACT_HOLD_MS = 10;
         const MERGE_MS = 145;
         const CLEANUP_BUFFER = 32;
         const hasPendingSpawn = game.newTile !== null && game.newTile !== undefined;
