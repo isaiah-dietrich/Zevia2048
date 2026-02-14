@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zevia 2048 - Flavor Fusion Game</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Zevia 2048</h1>
+            <p class="subtitle">Combine flavors to reach Ginger Root Beer!</p>
+        </header>
+
+        <div class="game-wrapper">
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Moves</div>
+                    <div class="stat-value" id="moves">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Best Score</div>
+                    <div class="stat-value" id="best-score">0</div>
+                </div>
+            </div>
+
+            <div class="game-board" id="game-board">
+                <!-- 4x4 tiles will be generated here -->
+            </div>
+
+            <div class="controls">
+                <button id="new-game-btn" class="btn btn-primary">New Game</button>
+                <div class="instructions">
+                    <p><strong>Controls:</strong> Arrow Keys or WASD to move tiles</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Combine tiles with the same flavor to progress through the Zevia lineup</p>
+        </footer>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">Game Over</h2>
+            <p id="modal-message">Final Score: <span id="final-score">0</span></p>
+            <div class="modal-buttons">
+                <button id="continue-btn" class="btn btn-primary">Continue Playing</button>
+                <button id="new-game-btn-modal" class="btn btn-primary">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/utils.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <!-- Dev: auto-load debug logger (remove in production if undesired) -->
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            try {
+                var s = document.createElement('script');
+                s.src = 'js/debug-logger.js';
+                s.onload = function () {
+                    if (window.debugLogger && typeof debugLogger.startDebug === 'function') {
+                        // start automatically when game/ui are available
+                        setTimeout(function () { try { debugLogger.startDebug(); } catch (e) { console.warn('debug-logger failed to start', e); } }, 50);
+                    }
+                };
+                document.body.appendChild(s);
+            } catch (e) {
+                console.warn('Failed to inject debug-logger', e);
+            }
+        });
+    </script>
+</body>
+</html>
