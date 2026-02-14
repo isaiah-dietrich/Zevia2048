@@ -4,7 +4,7 @@ A fun, interactive 2048-style puzzle game featuring Zevia soda flavors! Combine 
 
 ## 🎮 Play Now
 
-Visit the live game: [https://isaiahdietrich.github.io/Zevia2048/](https://isaiahdietrich.github.io/Zevia2048/)
+Visit the live game: [https://isaiahdietrich.github.io/Zevia2048/]((https://isaiah-dietrich.github.io/Zevia2048/))
 
 ## 📋 Game Rules
 
