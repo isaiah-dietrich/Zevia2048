@@ -6,7 +6,6 @@ class UI {
         this.movesDisplay = document.getElementById('moves');
         this.bestScoreDisplay = document.getElementById('best-score');
         this.newGameBtn = document.getElementById('new-game-btn');
-        this.continueBtn = document.getElementById('continue-btn');
         this.newGameBtnModal = document.getElementById('new-game-btn-modal');
         this.gameOverModal = document.getElementById('game-over-modal');
         this.modalTitle = document.getElementById('modal-title');
@@ -19,6 +18,7 @@ class UI {
         this.animationLockTimer = null;
         this.pendingDirections = [];
         this.debug = false; // set to true to enable origin->target logging
+        this.mergeGhosts = [];
         this.flavorImagePaths = [
             'assets/images/cola.webp',
             'assets/images/dr-zevia.webp',
@@ -77,7 +77,6 @@ class UI {
     initEventListeners() {
         // Button clicks
         this.newGameBtn.addEventListener('click', () => this.newGame());
-        this.continueBtn.addEventListener('click', () => this.hideGameEnd());
         this.newGameBtnModal.addEventListener('click', () => this.newGame());
 
         // Keyboard controls
@@ -86,6 +85,8 @@ class UI {
 
     // Handle keyboard input
     handleKeyPress(e) {
+        if (!this.gameOverModal.classList.contains('hidden')) return;
+
         let direction = null;
 
         switch (e.key.toLowerCase()) {
@@ -113,9 +114,10 @@ class UI {
 
         if (direction) {
             if (this.isAnimating) {
-                this.pendingDirections.push(direction);
-                // If new input arrives mid-animation, finish current visual phase now.
-                this.cleanupAnimations();
+                // Favor immediate control feel over finishing the previous visual tail.
+                this.interruptAnimations();
+                this.pendingDirections = [];
+                this.executeMove(direction);
                 return;
             }
             this.executeMove(direction);
@@ -128,7 +130,6 @@ class UI {
 
         this.isAnimating = true;
         this.render();
-        this.checkGameEnd();
         this.startAnimationWatchdog();
         return true;
     }
@@ -137,13 +138,36 @@ class UI {
         if (this.animationLockTimer) clearTimeout(this.animationLockTimer);
         this.animationLockTimer = setTimeout(() => {
             if (this.isAnimating) this.cleanupAnimations();
-        }, 1200);
+        }, 700);
+    }
+
+    interruptAnimations() {
+        this.clearAnimationTimers();
+        if (this.animationLockTimer) {
+            clearTimeout(this.animationLockTimer);
+            this.animationLockTimer = null;
+        }
+        this.clearMergeGhosts();
+        this.tiles.forEach((tile) => {
+            tile.classList.remove('sliding', 'spawning', 'merging');
+        });
+        this.syncBoardToState();
+        game.newTile = null;
+        game.movedTiles.clear();
+        game.mergedTiles.clear();
+        game.animationMetadata = { moves: [], merges: [] };
+        this.isAnimating = false;
     }
 
     flushPendingDirection() {
         if (this.isAnimating || this.pendingDirections.length === 0) return;
-        const nextDirection = this.pendingDirections.shift();
-        this.executeMove(nextDirection);
+
+        // Drain buffered inputs until one produces an actual move.
+        while (!this.isAnimating && this.pendingDirections.length > 0) {
+            const nextDirection = this.pendingDirections.shift();
+            const moved = this.executeMove(nextDirection);
+            if (moved) return;
+        }
     }
 
     clearAnimationTimers() {
@@ -151,18 +175,70 @@ class UI {
         this.animationTimers = [];
     }
 
+    clearMergeGhosts() {
+        this.mergeGhosts.forEach((ghost) => ghost.remove());
+        this.mergeGhosts = [];
+    }
+
+    syncBoardToState() {
+        for (let i = 0; i < 16; i++) {
+            const tile = this.tiles.get(i);
+            if (!tile) continue;
+
+            tile.className = 'tile';
+            tile.style.transform = 'translate3d(0, 0, 0)';
+            tile.style.opacity = '1';
+            tile.dataset.spawnFlavor = '';
+
+            const flavorIndex = game.board[i];
+            if (flavorIndex === null || flavorIndex === undefined) {
+                tile.classList.add('empty');
+                tile.dataset.flavor = '';
+                tile.textContent = '';
+            } else {
+                const flavor = game.getFlavorName(flavorIndex);
+                tile.dataset.flavor = flavor;
+                tile.textContent = flavor;
+            }
+        }
+    }
+
     // Render the game board with proper animation sequencing
     render() {
-        const SLIDE_MS = 170;
-        const SETTLE_MS = 30;
-        const MERGE_MS = 180;
-        const CLEANUP_BUFFER = 90;
+        const SLIDE_MS = 145;
+        const CONTACT_HOLD_MS = 18;
+        const MERGE_MS = 155;
+        const CLEANUP_BUFFER = 40;
         const hasPendingSpawn = game.newTile !== null && game.newTile !== undefined;
         const boardNow = game.board.slice();
         const boardForMotion = hasPendingSpawn && game.boardAfterMove?.length === 16
             ? game.boardAfterMove.slice()
             : boardNow.slice();
         const originFor = new Map();
+        const mergePlanByTarget = new Map();
+
+        if (Array.isArray(game.animationMetadata?.merges)) {
+            game.animationMetadata.merges.forEach((merge) => {
+                const target = merge.to;
+                const finalFlavorIndex = boardNow[target];
+                if (finalFlavorIndex === null || finalFlavorIndex === undefined) return;
+
+                let preMergeFlavorIndex = game.boardBefore?.[target];
+                if (preMergeFlavorIndex === null || preMergeFlavorIndex === undefined) {
+                    preMergeFlavorIndex = game.boardBefore?.[merge.from[0]];
+                }
+                if (preMergeFlavorIndex === null || preMergeFlavorIndex === undefined) {
+                    preMergeFlavorIndex = Math.max(0, finalFlavorIndex - 1);
+                }
+
+                mergePlanByTarget.set(target, {
+                    target,
+                    from: Array.isArray(merge.from) ? merge.from.slice() : [],
+                    preMergeFlavorIndex,
+                    finalFlavorIndex
+                });
+            });
+        }
 
         for (let i = 0; i < 16; i++) {
             if (boardForMotion[i] !== null && boardForMotion[i] !== undefined) {
@@ -180,6 +256,7 @@ class UI {
         }
 
         this.clearAnimationTimers();
+        this.clearMergeGhosts();
         requestAnimationFrame(() => {
             // Layout metrics
             const sample = this.tiles.get(0);
@@ -225,12 +302,14 @@ class UI {
                     tile.textContent = '';
                     tile.dataset.spawnFlavor = spawnFlavor;
                 } else if (flavorIndex !== null && flavorIndex !== undefined) {
-                    const flavor = game.getFlavorName(flavorIndex);
+                    const mergePlan = mergePlanByTarget.get(i);
+                    const displayFlavorIndex = mergePlan ? mergePlan.preMergeFlavorIndex : flavorIndex;
+                    const flavor = game.getFlavorName(displayFlavorIndex);
                     tile.dataset.flavor = flavor;
                     tile.textContent = flavor;
 
                     const originIdx = originFor.get(i);
-                    if (originIdx !== undefined && originIdx !== i) {
+                    if (!mergePlan && originIdx !== undefined && originIdx !== i) {
                         const oc = { row: Math.floor(originIdx / 4), col: originIdx % 4 };
                         const tc = { row: Math.floor(i / 4), col: i % 4 };
                         const dx = (oc.col - tc.col) * stride;
@@ -247,30 +326,92 @@ class UI {
             // Force starting transforms to apply
             this.gameBoard.offsetHeight;
 
+            mergePlanByTarget.forEach((mergePlan, target) => {
+                const targetTile = this.tiles.get(target);
+                if (!targetTile) return;
+                const targetRect = targetTile.getBoundingClientRect();
+                const boardRect = this.gameBoard.getBoundingClientRect();
+                const movers = mergePlan.from.filter((from) => from !== target);
+
+                movers.forEach((from) => {
+                    const sourceFlavorIndex = game.boardBefore?.[from];
+                    const flavorIndex = sourceFlavorIndex !== null && sourceFlavorIndex !== undefined
+                        ? sourceFlavorIndex
+                        : mergePlan.preMergeFlavorIndex;
+                    const flavor = game.getFlavorName(flavorIndex);
+                    const fromCoord = { row: Math.floor(from / 4), col: from % 4 };
+                    const toCoord = { row: Math.floor(target / 4), col: target % 4 };
+                    const dx = (fromCoord.col - toCoord.col) * stride;
+                    const dy = (fromCoord.row - toCoord.row) * stride;
+
+                    const ghost = document.createElement('div');
+                    ghost.className = 'tile tile-ghost';
+                    ghost.dataset.flavor = flavor;
+                    ghost.style.width = `${Math.round(targetRect.width)}px`;
+                    ghost.style.height = `${Math.round(targetRect.height)}px`;
+                    ghost.style.left = `${Math.round(targetRect.left - boardRect.left)}px`;
+                    ghost.style.top = `${Math.round(targetRect.top - boardRect.top)}px`;
+                    ghost.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+                    this.gameBoard.appendChild(ghost);
+                    this.mergeGhosts.push(ghost);
+                });
+            });
+
+            this.gameBoard.offsetHeight;
+
             // Start all slides at the same time (fixed duration)
             game.movedTiles.forEach((i) => {
+                if (mergePlanByTarget.has(i)) return;
                 const tile = this.tiles.get(i);
                 if (!tile) return;
                 tile.classList.add('sliding');
                 // Trigger to final position
                 tile.style.transform = 'translate3d(0, 0, 0)';
             });
+            this.mergeGhosts.forEach((ghost) => {
+                ghost.classList.add('sliding');
+                ghost.style.transform = 'translate3d(0, 0, 0)';
+            });
 
             // Run follow-up phases only after animations that actually exist.
-            const hasSlides = game.movedTiles.size > 0;
+            const hasSlides = game.movedTiles.size > 0 || this.mergeGhosts.length > 0;
             const hasMerges = game.mergedTiles.size > 0;
-            const slideCompleteDelay = hasSlides ? (SLIDE_MS + SETTLE_MS) : 0;
+            const slideCompleteDelay = hasSlides
+                ? (SLIDE_MS + (hasMerges ? CONTACT_HOLD_MS : 0))
+                : 0;
             const mergeTimer = setTimeout(() => {
                 game.mergedTiles.forEach((i) => {
                     const tile = this.tiles.get(i);
-                    if (tile) tile.classList.add('merging');
+                    if (!tile) return;
+
+                    const mergePlan = mergePlanByTarget.get(i);
+                    if (mergePlan) {
+                        const mergedFlavor = game.getFlavorName(mergePlan.finalFlavorIndex);
+                        tile.classList.remove('empty');
+                        tile.dataset.flavor = mergedFlavor;
+                        tile.textContent = mergedFlavor;
+                    }
+                    tile.classList.add('merging');
                 });
+                this.clearMergeGhosts();
             }, slideCompleteDelay);
             this.animationTimers.push(mergeTimer);
 
-            // Spawn after merge only when merge animation is present.
+            // Release input lock as soon as movement reaches contact; don't wait
+            // for the full visual tail (merge/spawn polish) to finish.
+            const unlockDelay = slideCompleteDelay;
+            const unlockTimer = setTimeout(() => {
+                if (!this.isAnimating) return;
+                this.isAnimating = false;
+                this.flushPendingDirection();
+            }, unlockDelay);
+            this.animationTimers.push(unlockTimer);
+
+            // Spawn shortly after impact so controls feel responsive.
             const mergeCompleteDelay = hasMerges ? MERGE_MS : 0;
-            const spawnDelay = slideCompleteDelay + mergeCompleteDelay;
+            const spawnDelay = hasMerges
+                ? (slideCompleteDelay + Math.round(MERGE_MS * 0.12))
+                : slideCompleteDelay;
             const spawnTimer = setTimeout(() => {
                 if (game.newTile !== null && game.newTile !== undefined) {
                     const tile = this.tiles.get(game.newTile);
@@ -287,7 +428,8 @@ class UI {
             this.animationTimers.push(spawnTimer);
 
             // Final cleanup after all animations
-            const cleanupAfter = spawnDelay + CLEANUP_BUFFER;
+            const mergeEndDelay = slideCompleteDelay + mergeCompleteDelay;
+            const cleanupAfter = Math.max(spawnDelay, mergeEndDelay) + CLEANUP_BUFFER;
             const cleanupTimer = setTimeout(() => this.cleanupAnimations(), cleanupAfter);
             this.animationTimers.push(cleanupTimer);
 
@@ -306,6 +448,7 @@ class UI {
                 tile.classList.remove('sliding', 'spawning', 'merging');
             });
         });
+        this.clearMergeGhosts();
 
         // Reset game animation tracking
         game.newTile = null;
@@ -318,7 +461,12 @@ class UI {
             this.animationLockTimer = null;
         }
         this.clearAnimationTimers();
-        this.flushPendingDirection();
+        this.checkGameEnd();
+        if (this.gameOverModal.classList.contains('hidden')) {
+            this.flushPendingDirection();
+        } else {
+            this.pendingDirections = [];
+        }
     }
 
     // Update score and moves display
