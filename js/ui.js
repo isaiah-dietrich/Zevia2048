@@ -23,6 +23,9 @@ class UI {
         this.mergeGhosts = [];
         this.layoutStride = 0;
         this.layoutDirty = true;
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.touchStartTime = 0;
         this.flavorImagePaths = [
             'assets/images/cola.webp',
             'assets/images/dr-zevia.webp',
@@ -97,6 +100,8 @@ class UI {
 
         // Keyboard controls
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+        this.gameBoard.addEventListener('touchstart', (e) => this.handleTouchStart(e), { passive: true });
+        this.gameBoard.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: true });
         window.addEventListener('resize', () => {
             this.layoutDirty = true;
         });
@@ -131,14 +136,51 @@ class UI {
                 break;
         }
 
-        if (direction) {
-            if (this.isAnimating) {
-                // Keep only the most recent intent while animating.
-                this.pendingDirections = [direction];
-                return;
-            }
-            this.executeMove(direction);
+        if (direction) this.handleDirectionInput(direction);
+    }
+
+    handleTouchStart(e) {
+        if (e.touches.length !== 1) return;
+        const touch = e.touches[0];
+        this.touchStartX = touch.clientX;
+        this.touchStartY = touch.clientY;
+        this.touchStartTime = Date.now();
+    }
+
+    handleTouchEnd(e) {
+        if (!this.gameOverModal.classList.contains('hidden')) return;
+        if (this.touchStartX === null || this.touchStartY === null) return;
+        if (e.changedTouches.length !== 1) return;
+
+        const touch = e.changedTouches[0];
+        const dx = touch.clientX - this.touchStartX;
+        const dy = touch.clientY - this.touchStartY;
+        const absX = Math.abs(dx);
+        const absY = Math.abs(dy);
+        const elapsed = Date.now() - this.touchStartTime;
+        const minDistance = 26;
+
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.touchStartTime = 0;
+
+        if (elapsed > 650) return;
+        if (Math.max(absX, absY) < minDistance) return;
+
+        let direction = null;
+        if (absX > absY) direction = dx > 0 ? 'right' : 'left';
+        else direction = dy > 0 ? 'down' : 'up';
+
+        if (direction) this.handleDirectionInput(direction);
+    }
+
+    handleDirectionInput(direction) {
+        if (this.isAnimating) {
+            // Keep only the most recent intent while animating.
+            this.pendingDirections = [direction];
+            return;
         }
+        this.executeMove(direction);
     }
 
     executeMove(direction) {

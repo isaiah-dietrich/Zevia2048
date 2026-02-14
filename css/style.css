@@ -218,6 +218,7 @@ header h1 {
     margin-bottom: 25px;
     aspect-ratio: 1;
     position: relative;
+    touch-action: none;
 }
 
 .tile {
