@@ -17,6 +17,7 @@ class UI {
         this.isAnimating = false;
         this.animationTimers = [];
         this.animationLockTimer = null;
+        this.gameEndTimer = null;
         this.pendingDirections = [];
         this.debug = false; // set to true to enable origin->target logging
         this.mergeGhosts = [];
@@ -526,8 +527,12 @@ class UI {
             game.winModalShown = true;
             this.saveBestScore();
         } else if (game.gameOver) {
-            this.showGameEnd('Game Over', `Final Score: ${game.score}`, false);
-            this.saveBestScore();
+            if (this.gameEndTimer) return;
+            this.gameEndTimer = setTimeout(() => {
+                this.showGameEnd('Game Over', `Final Score: ${game.score}`, false);
+                this.saveBestScore();
+                this.gameEndTimer = null;
+            }, 1000);
         }
     }
 
@@ -543,6 +548,10 @@ class UI {
 
     // Hide game over modal
     hideGameEnd() {
+        if (this.gameEndTimer) {
+            clearTimeout(this.gameEndTimer);
+            this.gameEndTimer = null;
+        }
         this.gameOverModal.classList.add('hidden');
         // Remove dim effect
         this.gameBoard.parentElement.classList.remove('dimmed');
@@ -550,6 +559,10 @@ class UI {
 
     // Start new game
     newGame() {
+        if (this.gameEndTimer) {
+            clearTimeout(this.gameEndTimer);
+            this.gameEndTimer = null;
+        }
         this.clearAnimationTimers();
         this.isAnimating = false;
         this.pendingDirections = [];
