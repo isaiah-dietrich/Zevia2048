@@ -6,11 +6,12 @@
 }
 
 :root {
-    --anim-slide-ms: 140ms;
+    --anim-slide-ms: 100ms;
     --anim-merge-ms: 145ms;
     --anim-spawn-ms: 220ms;
-    --anim-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --anim-slide-ease: linear;
     --anim-pop-ease: cubic-bezier(0.24, 1.08, 0.34, 1);
+    --anim-spawn-ease: cubic-bezier(0.2, 0.82, 0.3, 1);
 }
 
 body {
@@ -227,18 +228,18 @@ header h1 {
 
 /* Spawn Animation - new tiles pop in with a short overshoot */
 .tile.spawning {
-    animation: spawn var(--anim-spawn-ms) var(--anim-pop-ease) both;
+    animation: spawn var(--anim-spawn-ms) var(--anim-spawn-ease) both;
     z-index: 15;
     animation-fill-mode: both;
 }
 
 @keyframes spawn {
     0% {
-        transform: scale(0.98) translateZ(0);
-        opacity: 0.92;
+        transform: scale(0.992) translateZ(0);
+        opacity: 0.55;
     }
-    60% {
-        transform: scale(1.02) translateZ(0);
+    70% {
+        transform: scale(1.004) translateZ(0);
         opacity: 1;
     }
     100% {

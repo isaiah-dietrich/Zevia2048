@@ -6,6 +6,7 @@ class UI {
         this.movesDisplay = document.getElementById('moves');
         this.bestScoreDisplay = document.getElementById('best-score');
         this.newGameBtn = document.getElementById('new-game-btn');
+        this.continueBtn = document.getElementById('continue-btn');
         this.newGameBtnModal = document.getElementById('new-game-btn-modal');
         this.gameOverModal = document.getElementById('game-over-modal');
         this.modalTitle = document.getElementById('modal-title');
@@ -90,6 +91,7 @@ class UI {
     initEventListeners() {
         // Button clicks
         this.newGameBtn.addEventListener('click', () => this.newGame());
+        this.continueBtn.addEventListener('click', () => this.hideGameEnd());
         this.newGameBtnModal.addEventListener('click', () => this.newGame());
 
         // Keyboard controls
@@ -130,14 +132,8 @@ class UI {
 
         if (direction) {
             if (this.isAnimating) {
-                // Queue a small number of inputs so motion stays continuous.
-                const lastQueued = this.pendingDirections[this.pendingDirections.length - 1];
-                if (lastQueued !== direction) {
-                    this.pendingDirections.push(direction);
-                    if (this.pendingDirections.length > 2) {
-                        this.pendingDirections = this.pendingDirections.slice(-2);
-                    }
-                }
+                // Keep only the most recent intent while animating.
+                this.pendingDirections = [direction];
                 return;
             }
             this.executeMove(direction);
@@ -184,13 +180,9 @@ class UI {
 
     flushPendingDirection() {
         if (this.isAnimating || this.pendingDirections.length === 0) return;
-
-        // Drain buffered inputs until one produces an actual move.
-        while (!this.isAnimating && this.pendingDirections.length > 0) {
-            const nextDirection = this.pendingDirections.shift();
-            const moved = this.executeMove(nextDirection);
-            if (moved) return;
-        }
+        const nextDirection = this.pendingDirections.pop();
+        this.pendingDirections = [];
+        this.executeMove(nextDirection);
     }
 
     clearAnimationTimers() {
@@ -242,9 +234,10 @@ class UI {
 
     // Render the game board with proper animation sequencing
     render() {
-        const SLIDE_MS = 140;
-        const CONTACT_HOLD_MS = 10;
+        const SLIDE_MS = 100;
+        const CONTACT_HOLD_MS = 0;
         const MERGE_MS = 145;
+        const FRAME_BUFFER_MS = 16;
         const CLEANUP_BUFFER = 32;
         const hasPendingSpawn = game.newTile !== null && game.newTile !== undefined;
         const boardNow = game.board.slice();
@@ -261,6 +254,7 @@ class UI {
                 if (finalFlavorIndex === null || finalFlavorIndex === undefined) return;
 
                 let preMergeFlavorIndex = game.boardBefore?.[target];
+                const targetWasOccupied = preMergeFlavorIndex !== null && preMergeFlavorIndex !== undefined;
                 if (preMergeFlavorIndex === null || preMergeFlavorIndex === undefined) {
                     preMergeFlavorIndex = game.boardBefore?.[merge.from[0]];
                 }
@@ -271,6 +265,7 @@ class UI {
                 mergePlanByTarget.set(target, {
                     target,
                     from: Array.isArray(merge.from) ? merge.from.slice() : [],
+                    targetWasOccupied,
                     preMergeFlavorIndex,
                     finalFlavorIndex
                 });
@@ -334,10 +329,16 @@ class UI {
                     tile.dataset.spawnFlavor = spawnFlavor;
                 } else if (flavorIndex !== null && flavorIndex !== undefined) {
                     const mergePlan = mergePlanByTarget.get(i);
-                    const displayFlavorIndex = mergePlan ? mergePlan.preMergeFlavorIndex : flavorIndex;
-                    const flavor = game.getFlavorName(displayFlavorIndex);
-                    tile.dataset.flavor = flavor;
-                    tile.textContent = flavor;
+                    if (mergePlan && !mergePlan.targetWasOccupied) {
+                        tile.classList.add('empty');
+                        tile.dataset.flavor = '';
+                        tile.textContent = '';
+                    } else {
+                        const displayFlavorIndex = mergePlan ? mergePlan.preMergeFlavorIndex : flavorIndex;
+                        const flavor = game.getFlavorName(displayFlavorIndex);
+                        tile.dataset.flavor = flavor;
+                        tile.textContent = flavor;
+                    }
 
                     const originIdx = originFor.get(i);
                     if (!mergePlan && originIdx !== undefined && originIdx !== i) {
@@ -425,21 +426,11 @@ class UI {
             }, slideCompleteDelay);
             this.animationTimers.push(mergeTimer);
 
-            // Release input lock as soon as movement reaches contact; don't wait
-            // for the full visual tail (merge/spawn polish) to finish.
-            const unlockDelay = slideCompleteDelay;
-            const unlockTimer = setTimeout(() => {
-                if (!this.isAnimating) return;
-                this.isAnimating = false;
-                this.flushPendingDirection();
-            }, unlockDelay);
-            this.animationTimers.push(unlockTimer);
-
             // Spawn shortly after impact so controls feel responsive.
             const mergeCompleteDelay = hasMerges ? MERGE_MS : 0;
             const spawnDelay = hasMerges
-                ? (slideCompleteDelay + Math.round(MERGE_MS * 0.12))
-                : slideCompleteDelay;
+                ? (slideCompleteDelay + Math.round(MERGE_MS * 0.12) + FRAME_BUFFER_MS)
+                : (slideCompleteDelay + FRAME_BUFFER_MS);
             const spawnTimer = setTimeout(() => {
                 if (game.newTile !== null && game.newTile !== undefined) {
                     const tile = this.tiles.get(game.newTile);
@@ -454,6 +445,16 @@ class UI {
                 }
             }, spawnDelay);
             this.animationTimers.push(spawnTimer);
+
+            // Release input lock after spawn is placed so a new tile never appears
+            // in front of already-moving tiles from a subsequent queued move.
+            const unlockDelay = spawnDelay;
+            const unlockTimer = setTimeout(() => {
+                if (!this.isAnimating) return;
+                this.isAnimating = false;
+                this.flushPendingDirection();
+            }, unlockDelay);
+            this.animationTimers.push(unlockTimer);
 
             // Final cleanup after all animations
             const mergeEndDelay = slideCompleteDelay + mergeCompleteDelay;
@@ -521,19 +522,20 @@ class UI {
     // Check for game end conditions
     checkGameEnd() {
         if (game.won && !game.winModalShown) {
-            this.showGameEnd('You Won!', `You reached Ginger Root Beer! Final Score: ${game.score}`);
+            this.showGameEnd('You Won!', `You reached Ginger Root Beer! Final Score: ${game.score}`, true);
             game.winModalShown = true;
             this.saveBestScore();
         } else if (game.gameOver) {
-            this.showGameEnd('Game Over', `Final Score: ${game.score}`);
+            this.showGameEnd('Game Over', `Final Score: ${game.score}`, false);
             this.saveBestScore();
         }
     }
 
     // Show game over modal
-    showGameEnd(title, message) {
+    showGameEnd(title, message, showContinue = false) {
         this.modalTitle.textContent = title;
         this.finalScoreDisplay.textContent = game.score;
+        this.continueBtn.style.display = showContinue ? 'block' : 'none';
         // Apply dim effect to the game board
         this.gameBoard.parentElement.classList.add('dimmed');
         this.gameOverModal.classList.remove('hidden');
