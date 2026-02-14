@@ -239,9 +239,9 @@ class UI {
     // Render the game board with proper animation sequencing
     render() {
         const SLIDE_MS = 145;
-        const CONTACT_HOLD_MS = 18;
-        const MERGE_MS = 155;
-        const CLEANUP_BUFFER = 40;
+        const CONTACT_HOLD_MS = 16;
+        const MERGE_MS = 145;
+        const CLEANUP_BUFFER = 32;
         const hasPendingSpawn = game.newTile !== null && game.newTile !== undefined;
         const boardNow = game.board.slice();
         const boardForMotion = hasPendingSpawn && game.boardAfterMove?.length === 16
@@ -349,9 +349,6 @@ class UI {
                     tile.dataset.flavor = '';
                 }
             });
-
-            // Force starting transforms to apply
-            this.gameBoard.offsetHeight;
 
             mergePlanByTarget.forEach((mergePlan, target) => {
                 const targetTile = this.tiles.get(target);

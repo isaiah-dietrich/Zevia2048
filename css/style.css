@@ -7,10 +7,10 @@
 
 :root {
     --anim-slide-ms: 145ms;
-    --anim-merge-ms: 155ms;
-    --anim-spawn-ms: 170ms;
-    --anim-slide-ease: cubic-bezier(0.2, 0.9, 0.3, 1);
-    --anim-pop-ease: cubic-bezier(0.25, 1.2, 0.35, 1);
+    --anim-merge-ms: 145ms;
+    --anim-spawn-ms: 150ms;
+    --anim-slide-ease: cubic-bezier(0.18, 0.92, 0.28, 1);
+    --anim-pop-ease: cubic-bezier(0.24, 1.08, 0.34, 1);
 }
 
 body {
