@@ -19,6 +19,8 @@ class UI {
         this.pendingDirections = [];
         this.debug = false; // set to true to enable origin->target logging
         this.mergeGhosts = [];
+        this.layoutStride = 0;
+        this.layoutDirty = true;
         this.flavorImagePaths = [
             'assets/images/cola.webp',
             'assets/images/dr-zevia.webp',
@@ -45,7 +47,9 @@ class UI {
     }
 
     preloadFlavorImages() {
-        this.flavorImagePaths.forEach((path) => {
+        const critical = this.flavorImagePaths.slice(0, 3);
+        const deferred = this.flavorImagePaths.slice(3);
+        const warm = (path) => {
             const img = new Image();
             img.src = path;
             if (typeof img.decode === 'function') {
@@ -53,7 +57,16 @@ class UI {
                     // Ignore decode failures; browser will still fetch/cache image bytes.
                 });
             }
-        });
+        };
+
+        critical.forEach(warm);
+
+        const preloadDeferred = () => deferred.forEach(warm);
+        if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(preloadDeferred, { timeout: 1200 });
+        } else {
+            setTimeout(preloadDeferred, 400);
+        }
     }
 
     // Initialize board tiles once
@@ -81,6 +94,9 @@ class UI {
 
         // Keyboard controls
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+        window.addEventListener('resize', () => {
+            this.layoutDirty = true;
+        });
     }
 
     // Handle keyboard input
@@ -183,6 +199,20 @@ class UI {
         this.mergeGhosts = [];
     }
 
+    getStride() {
+        if (!this.layoutDirty && this.layoutStride > 0) return this.layoutStride;
+        const sample = this.tiles.get(0);
+        if (!sample) return 110;
+        const tileRect = sample.getBoundingClientRect();
+        const tileSize = Math.round(tileRect.width);
+        const styles = window.getComputedStyle(this.gameBoard);
+        const gapStr = styles.getPropertyValue('gap') || styles.getPropertyValue('grid-gap') || '10px';
+        const gap = parseInt(gapStr, 10) || 10;
+        this.layoutStride = tileSize + gap;
+        this.layoutDirty = false;
+        return this.layoutStride;
+    }
+
     syncBoardToState() {
         for (let i = 0; i < 16; i++) {
             const tile = this.tiles.get(i);
@@ -261,13 +291,7 @@ class UI {
         this.clearAnimationTimers();
         this.clearMergeGhosts();
         requestAnimationFrame(() => {
-            // Layout metrics
-            const sample = this.tiles.get(0);
-            const tileRect = sample.getBoundingClientRect();
-            const tileSize = Math.round(tileRect.width);
-            const gapStr = window.getComputedStyle(this.gameBoard).getPropertyValue('gap') || window.getComputedStyle(this.gameBoard).getPropertyValue('grid-gap') || '10px';
-            const gap = parseInt(gapStr, 10) || 10;
-            const stride = tileSize + gap;
+            const stride = this.getStride();
 
             // Debug logging: origin -> target assignments and moved/merged sets
             if (this.debug) {

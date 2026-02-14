@@ -60,15 +60,16 @@
     <script src="js/utils.js"></script>
     <script src="js/game.js"></script>
     <script src="js/ui.js"></script>
-    <!-- Dev: auto-load debug logger (remove in production if undesired) -->
+    <!-- Dev-only debug logger: enable with ?debug=1 -->
     <script>
         window.addEventListener('DOMContentLoaded', function () {
+            if (!window.location.search.includes('debug=1')) return;
             try {
                 var s = document.createElement('script');
                 s.src = 'js/debug-logger.js';
                 s.onload = function () {
                     if (window.debugLogger && typeof debugLogger.startDebug === 'function') {
-                        // start automatically when game/ui are available
+                        // start automatically only when explicit debug mode is enabled
                         setTimeout(function () { try { debugLogger.startDebug(); } catch (e) { console.warn('debug-logger failed to start', e); } }, 50);
                     }
                 };
