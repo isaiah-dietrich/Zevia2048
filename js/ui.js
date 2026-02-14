@@ -19,11 +19,41 @@ class UI {
         this.animationLockTimer = null;
         this.pendingDirections = [];
         this.debug = false; // set to true to enable origin->target logging
+        this.flavorImagePaths = [
+            'assets/images/cola.webp',
+            'assets/images/dr-zevia.webp',
+            'assets/images/ginger-ale.webp',
+            'assets/images/black-cherry.webp',
+            'assets/images/lemon-lime.webp',
+            'assets/images/orange.webp',
+            'assets/images/grape.webp',
+            'assets/images/cream-soda.webp',
+            'assets/images/cherry-cola.webp',
+            'assets/images/creamy-root-beer.webp',
+            'assets/images/ginger-root-beer.webp',
+            'assets/images/cran-raspberry.webp',
+            'assets/images/vanilla-cola.webp',
+            'assets/images/salted-caramel.webp',
+            'assets/images/orange-creamsicle.webp'
+        ];
 
         this.loadBestScore();
+        this.preloadFlavorImages();
         this.initEventListeners();
         this.initializeBoard();
         this.render();
+    }
+
+    preloadFlavorImages() {
+        this.flavorImagePaths.forEach((path) => {
+            const img = new Image();
+            img.src = path;
+            if (typeof img.decode === 'function') {
+                img.decode().catch(() => {
+                    // Ignore decode failures; browser will still fetch/cache image bytes.
+                });
+            }
+        });
     }
 
     // Initialize board tiles once
@@ -179,14 +209,22 @@ class UI {
             boardForMotion.forEach((flavorIndex, i) => {
                 const tile = this.tiles.get(i);
                 if (!tile) return;
+                const isSpawnTile = hasPendingSpawn && i === game.newTile && boardNow[i] !== null && boardNow[i] !== undefined;
 
                 // Reset classes and content
                 tile.className = 'tile';
                 tile.classList.remove('empty');
                 tile.style.opacity = '1';
                 tile.style.transform = 'translate3d(0, 0, 0)';
+                tile.dataset.spawnFlavor = '';
 
-                if (flavorIndex !== null && flavorIndex !== undefined) {
+                if (isSpawnTile) {
+                    const spawnFlavor = game.getFlavorName(boardNow[i]);
+                    tile.classList.add('empty');
+                    tile.dataset.flavor = '';
+                    tile.textContent = '';
+                    tile.dataset.spawnFlavor = spawnFlavor;
+                } else if (flavorIndex !== null && flavorIndex !== undefined) {
                     const flavor = game.getFlavorName(flavorIndex);
                     tile.dataset.flavor = flavor;
                     tile.textContent = flavor;
@@ -203,14 +241,6 @@ class UI {
                     tile.classList.add('empty');
                     tile.textContent = '';
                     tile.dataset.flavor = '';
-                }
-
-                if (hasPendingSpawn && i === game.newTile && boardNow[i] !== null && boardNow[i] !== undefined) {
-                    const spawnFlavor = game.getFlavorName(boardNow[i]);
-                    tile.classList.remove('empty');
-                    tile.dataset.flavor = spawnFlavor;
-                    tile.textContent = spawnFlavor;
-                    tile.style.opacity = '0';
                 }
             });
 
@@ -245,7 +275,11 @@ class UI {
                 if (game.newTile !== null && game.newTile !== undefined) {
                     const tile = this.tiles.get(game.newTile);
                     if (tile) {
-                        tile.style.opacity = '1';
+                        const spawnFlavor = tile.dataset.spawnFlavor || game.getFlavorName(game.board[game.newTile]);
+                        tile.classList.remove('empty');
+                        tile.dataset.flavor = spawnFlavor;
+                        tile.textContent = spawnFlavor;
+                        tile.dataset.spawnFlavor = '';
                         tile.classList.add('spawning');
                     }
                 }
