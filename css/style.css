@@ -432,6 +432,6 @@ footer {
 
     .tile {
         min-height: 80px;
-        font-size: 1em;
+        font-size: 0;
     }
 }
