@@ -126,7 +126,10 @@ class UI {
 
     executeMove(direction) {
         const moved = game.move(direction);
-        if (!moved) return false;
+        if (!moved) {
+            this.checkGameEnd();
+            return false;
+        }
 
         this.isAnimating = true;
         this.render();
